@@ -3,6 +3,22 @@ import re
 
 from typing import *
 from fecore.utils import *
+from fecore.actions import *
+
+DEMAND = 'DEMAND'
+CONFIRM = 'CONFIRM'
+
+prefix_set = {DEMAND, CONFIRM}
+
+SYNC = 'SYNC'
+SEND = 'SEND'
+PERFORM = 'PERFORM'
+SET = 'SET'
+STATE = 'STATE'
+
+action_set = {SYNC, SEND, PERFORM, SET, STATE}
+
+UNDEFINED = 'UNDEFINED'
 
 re_quote = re.compile(r'[^\\](`)|^(`)', re.S)
 re_escaped_quote = re.compile(r'\\`')
@@ -29,7 +45,13 @@ class Command():
             self.type = CONFIRM
 
     def _handle_action(self, stat):
-        ...
+        """
+        Up to now, all actions should have a channel following.
+        Params are to be captured and passed through.
+        """
+        self._waiting_channel = 1
+        self._waiting_param = -1
+        self.type = stat
 
     def add_stat(self, stat):
         if self._waiting_channel != 0:

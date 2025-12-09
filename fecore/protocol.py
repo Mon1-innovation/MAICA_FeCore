@@ -1,9 +1,9 @@
 """
-Here we clarify the message structure.
+Here we clarify the message structure, perhaps call it ActionQL.
 
 According to my designs, it looks pretty much like SQL queries, but we define our own statements.  
 We call them 'Commands', since they're action based.   
-Commands are full-duplex, but possible actions differ a little, of course.  
+Commands are full-duplex, but possible actions differ a little between peers, of course.  
 We take UI -> Core as example:
 
 | Statement | I want you to... |
@@ -15,6 +15,10 @@ We take UI -> Core as example:
 | STATE | Enter or leave a state in a specific channel |
 
 ...
+
+An action statement takes one necessary 'channel', followed by none or several 'parameters'.
+Statements are separated by spaces, so statement with spaces inside should be wrapped by ``s.
+> To passthrough `s, escape them.
 
 As examples:
 
@@ -39,14 +43,13 @@ Then, we have prefixes and postfixes:
 | Statement | I want you to... |
 | --------- | ---------------- |
 | DEMAND | Prefix. The involving command should be executed blockingly |
-| CONFIRM | Prefix. DEMAND commands must be confirmed before executing |
+| CONFIRM | Prefix. Kinda reserved |
 
 ...
 
 As examples:
 
 - [UI -> Core] DEMAND SEND chat_login `my_token`
-- [Core -> UI] CONFIRM
 - [UI -> Core] SEND chat_query `你好啊`
 - [Core -> UI] PERFORM log `info` `Login success ...`
 - [Core -> UI] STATE main_status chat_idle
@@ -54,7 +57,6 @@ As examples:
 ...
 -----
 - [UI -> Core] DEMAND SEND chat_login `my_token2`
-- [Core -> UI] CONFIRM
 - [UI -> Core] SEND chat_query `你好啊`
 - [Core -> UI] PERFORM log `info` `Login failed ...`
 - [Core -> UI] STATE main_status login_failed
@@ -68,6 +70,11 @@ from typing import *
 from fecore.parser.router import router
 
 class CoreUIProtocol(asyncio.Protocol):
+
+    def __init__(self):
+        super().__init__()
+        self.lock = asyncio.Lock()
+
     def connection_made(self, transport):
         peername = transport.get_extra_info('peername')
         print(f'Connection from {peername}')
