@@ -13,14 +13,14 @@ class Command():
     demand: bool = False
     type = UNDEFINED
     channel = UNDEFINED
-    params = UNDEFINED
+    params = []
 
     # -1 for inf
     _waiting_channel = 0
     _waiting_param = 0
 
-    def __init__(self):
-        pass
+    def __init__(self, protocol):
+        self.protocol = protocol
 
     def _handle_prefix(self, stat):
         if stat == DEMAND:
@@ -32,7 +32,16 @@ class Command():
         ...
 
     def add_stat(self, stat):
-        if stat in prefix_set:
+        if self._waiting_channel != 0:
+            self.channel = stat
+            if self._waiting_channel > 0:
+                self._waiting_channel -= 1
+        elif self._waiting_param != 0:
+            self.params.append(stat)
+            if self._waiting_param > 0:
+                self._waiting_param -= 1
+
+        elif stat in prefix_set:
             self._handle_prefix(stat)
         elif stat in action_set:
             self._handle_action(stat)
@@ -65,13 +74,13 @@ def cmd_split(message: str):
 
     return stats
 
-async def router(stats: list):
+async def router(protocol, stats: list):
     """This routes a list of statements into procedures."""
-    command = Command()
+    command = Command(protocol)
     for stat in stats:
         command.add_stat(stat)
     await command.dispatch()
 
 if __name__ == "__main__":
-    stats = cmd_split(r'SHOW log `info` `MFocus tool chain round 1 ...` `` `1\``')
+    stats = cmd_split(r'PERFORM log `info` `MFocus tool chain round 1 ...` `` `1\``')
     print(stats)

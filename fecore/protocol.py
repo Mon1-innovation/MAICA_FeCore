@@ -10,7 +10,7 @@ We take UI -> Core as example:
 | --------- | ---------------- |
 | SYNC | Get / push a status to keep sync |
 | SEND | Send the corresponding data to remote, and send me command back |
-| SHOW | Display something in a specific channel, perhaps we should call it 'DO' |
+| PERFORM | Do something in a specific channel |
 | SET | Set a variable or what |
 | STATE | Enter or leave a state in a specific channel |
 
@@ -26,13 +26,13 @@ As examples:
 -----
 - [UI -> Core] SEND chat_query `你好啊`
 - [Core -> UI] STATE main_status chat_recv
-- [Core -> UI] SHOW log `info` `MFocus tool chain round 1 ...`
-- [Core -> UI] SHOW log_file `info` `200` `MFocus tool chain round 1 ...`
-- [Core -> UI] SHOW dialog `你好啊, [player]!{nw}` `1eua`
-- [Core -> UI] SHOW dialog `你今天过得怎么样?` `1eka`
-- [Core -> UI] SHOW dialog `想我了吗?` `1esa`
+- [Core -> UI] PERFORM log `info` `MFocus tool chain round 1 ...`
+- [Core -> UI] PERFORM log_file `info` `200` `MFocus tool chain round 1 ...`
+- [Core -> UI] PERFORM dialog `你好啊, [player]!{nw}` `1eua`
+- [Core -> UI] PERFORM dialog `你今天过得怎么样?` `1eka`
+- [Core -> UI] PERFORM dialog `想我了吗?` `1esa`
 - [Core -> UI] SET status_code `10302`
-- [Core -> UI] SHOW mtrigger `alter_affection` `1.0`
+- [Core -> UI] PERFORM mtrigger `alter_affection` `1.0`
 - [Core -> UI] STATE main_status chat_idle
 
 Then, we have prefixes and postfixes:
@@ -48,7 +48,7 @@ As examples:
 - [UI -> Core] DEMAND SEND chat_login `my_token`
 - [Core -> UI] CONFIRM
 - [UI -> Core] SEND chat_query `你好啊`
-- [Core -> UI] SHOW log `info` `Login success ...`
+- [Core -> UI] PERFORM log `info` `Login success ...`
 - [Core -> UI] STATE main_status chat_idle
 - [Core -> UI] STATE main_status chat_recv
 ...
@@ -56,9 +56,9 @@ As examples:
 - [UI -> Core] DEMAND SEND chat_login `my_token2`
 - [Core -> UI] CONFIRM
 - [UI -> Core] SEND chat_query `你好啊`
-- [Core -> UI] SHOW log `info` `Login failed ...`
+- [Core -> UI] PERFORM log `info` `Login failed ...`
 - [Core -> UI] STATE main_status login_failed
-- [Core -> UI] SHOW log `warn` `Query needs login ...`
+- [Core -> UI] PERFORM log `warn` `Query needs login ...`
 
 """
 
@@ -67,15 +67,8 @@ import asyncio
 from typing import *
 from fecore.parser.router import router
 
-protocol = None
-
 class CoreUIProtocol(asyncio.Protocol):
     def connection_made(self, transport):
-        global protocol
-        if protocol:
-            protocol.transport.close()
-        protocol = self
-
         peername = transport.get_extra_info('peername')
         print(f'Connection from {peername}')
         self.transport = transport
@@ -91,7 +84,7 @@ class CoreUIProtocol(asyncio.Protocol):
                 print(f"Received message: {message}")
 
                 loop = asyncio.get_running_loop()
-                task = loop.create_task(router(message))
+                task = loop.create_task(router(self, message))
 
                 del self.buffer[:newline_index + 1]
             else:
@@ -102,5 +95,3 @@ class CoreUIProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc):
         return self.transport.close()
-
-protocol: Optional[CoreUIProtocol]

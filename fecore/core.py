@@ -1,9 +1,5 @@
 """
-First priorities:
-
-- One fecore should only serve one feui, so kick stale connections
-
-
+I assume we can have multiple connections to make threading/asyncio UI easier.
 """
 
 import asyncio
