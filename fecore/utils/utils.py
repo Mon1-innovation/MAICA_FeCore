@@ -1,7 +1,11 @@
 import asyncio
 import httpx
 
-async def async_webrequest(url, type='get', content=None, form=False):
+from typing import *
+
+
+
+async def async_webrequest(url, type, content=None, form=False) -> dict:
     async with httpx.AsyncClient() as client:
         method = getattr(client, type)
         kwargs = {

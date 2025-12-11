@@ -43,7 +43,7 @@ Then, we have prefixes and postfixes:
 | Statement | I want you to... |
 | --------- | ---------------- |
 | DEMAND | Prefix. The involving command should be executed blockingly |
-| CONFIRM | Prefix. Kinda reserved |
+| CONFIRM | Prefix. All commands responding DEMAND will have this prefix |
 
 ...
 
@@ -51,15 +51,15 @@ As examples:
 
 - [UI -> Core] DEMAND SEND chat_login `my_token`
 - [UI -> Core] SEND chat_query `你好啊`
-- [Core -> UI] PERFORM log `info` `Login success ...`
+- [Core -> UI] CONFIRM PERFORM log `info` `Login success ...`
 - [Core -> UI] STATE main_status chat_idle
 - [Core -> UI] STATE main_status chat_recv
 ...
 -----
 - [UI -> Core] DEMAND SEND chat_login `my_token2`
 - [UI -> Core] SEND chat_query `你好啊`
-- [Core -> UI] PERFORM log `info` `Login failed ...`
-- [Core -> UI] STATE main_status login_failed
+- [Core -> UI] CONFIRM PERFORM log `info` `Login failed ...`
+- [Core -> UI] CONFIRM STATE main_status login_failed
 - [Core -> UI] PERFORM log `warn` `Query needs login ...`
 
 """

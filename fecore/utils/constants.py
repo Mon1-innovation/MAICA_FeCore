@@ -1,0 +1,2 @@
+SUBMODS_DIR = 'Submods'
+MAICA_CHATSUBMOD_DIR = 'MAICA_ChatSubmod'
